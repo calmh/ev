@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" crossorigin="anonymous">
+    <style type="text/css">
+    .chart {
+        height: 250px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+            <form class="form">
+                <label for="pids">PID:</label>
+                <select id="pids" onchange="selectPID()">
+                </select>
+            </form>
+            </div>
+        </div>
+        <div id="charts">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart" id="chart-cpu"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart" id="chart-ram"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart" id="chart-gr"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart" id="chart-gc"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <pre id="log"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.12.2.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
