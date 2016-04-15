@@ -8,8 +8,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"sort"
 	"strconv"
 	"time"
@@ -51,8 +53,17 @@ func main() {
 	keep := flag.Duration("keep", 5*time.Minute, "Length of history to keep")
 	flag.Parse()
 
+	var r io.Reader = os.Stdin
+	var err error
+	if flag.NArg() > 0 {
+		r, err = launch(flag.Args())
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	reqs := make(chan request)
-	go handler(reqs, *keep)
+	go handler(r, reqs, *keep)
 
 	h := &httpHandler{
 		reqs: reqs,
@@ -60,6 +71,7 @@ func main() {
 
 	http.HandleFunc("/", handleStatic)
 	http.HandleFunc("/data", h.handleRequest)
+	fmt.Println("Execution visualizer listening on", *addr)
 	http.ListenAndServe(*addr, nil)
 }
 
@@ -95,10 +107,10 @@ func (h *httpHandler) handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handler(reqs <-chan request, keep time.Duration) {
+func handler(r io.Reader, reqs <-chan request, keep time.Duration) {
 	c := make(chan datapoint)
 	l := make(chan logline)
-	go datapointsInto(os.Stdin, c, l)
+	go datapointsInto(r, c, l)
 
 	dps := make(map[int][]datapoint)
 	var lls []logline
@@ -254,4 +266,15 @@ func pointsToSeries(points []datapoint) dataset {
 		prev = dp
 	}
 	return ds
+}
+
+func launch(args []string) (io.Reader, error) {
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, "EV_INTERVAL=1000")
+	r, _ := cmd.StdoutPipe()
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	return r, nil
 }
